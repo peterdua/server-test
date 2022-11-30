@@ -67,6 +67,7 @@ func (w *Worker) GameOfLife(req stubs.GameOfLifeRequest, res *stubs.GameOfLifeRe
 func (w *Worker) GetAliveCells(req stubs.GetAliveCellsRequest, res *stubs.GetAliveCellsResponse) error {
 	w.mutex.Lock()
 	defer w.mutex.Unlock()
+
 	res.Turn = w.currentTurn
 	res.AliveCellsCount = len(calculateAliveCells(w.Param, w.world))
 	return nil
