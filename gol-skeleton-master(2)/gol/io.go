@@ -19,24 +19,19 @@ type ioChannels struct {
 }
 
 // ioState is the internal ioState of the io goroutine.
-// ioState是io goroutine的内部ioState。
 type ioState struct {
 	params   Params
 	channels ioChannels
 }
 
 // ioCommand allows requesting behaviour from the io (pgm) goroutine.
-// ioCommand允许io (pgm) goroutine的请求行为。
 type ioCommand uint8
 
 // This is a way of creating enums in Go.
-// 这是在Go中创建枚举的一种方法
 // It will evaluate to:
-// 它将求值为:
-//
-//	ioOutput 	= 0
-//	ioInput 	= 1
-//	ioCheckIdle = 2
+//		ioOutput 	= 0
+//		ioInput 	= 1
+//		ioCheckIdle = 2
 const (
 	ioOutput ioCommand = iota
 	ioInput

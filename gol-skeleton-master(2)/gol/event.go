@@ -6,38 +6,29 @@ import (
 )
 
 // Event represents any Game of Life event that needs to be communicated to the user.
-// 事件表示需要与用户沟通的任何Game of Life事件。
 type Event interface {
 	// Stringer allows each event to be printed by the GUI
-	//Stringer允许GUI打印每个事件
 	fmt.Stringer
 	// GetCompletedTurns should return the number of fully completed turns.
-	// GetCompletedTurns应该返回完全完成的回合数。
 	// If the 0th turn is finished, this should return 1.
-	// 如果第0轮结束，则返回1。
 	GetCompletedTurns() int
 }
 
 // AliveCellsCount is an Event notifying the user about the number of currently alive cells.
-// AliveCellsCount是一个通知用户当前活动单元格数量的事件。
 // This Event should be sent every 2s.
-// 这个事件应该每2秒发送一次。
 type AliveCellsCount struct { // implements Event
 	CompletedTurns int
 	CellsCount     int
 }
 
 // ImageOutputComplete is an Event notifying the user about the completion of output.
-// ImageOutputComplete是一个通知用户输出完成的事件。
 // This Event should be sent every time an image has been saved.
-// 每次保存图像时都应该发送此事件。
 type ImageOutputComplete struct { // implements Event
 	CompletedTurns int
 	Filename       string
 }
 
 // State represents a change in the state of execution.
-// 状态表示执行状态的更改。
 type State int
 
 const (
@@ -47,48 +38,36 @@ const (
 )
 
 // StateChange is an Event notifying the user about the change of state of execution.
-// StateChange是一个事件，通知用户执行状态的更改。
 // This Event should be sent every time the execution is paused, resumed or quit.
-// 每次执行被暂停、恢复或退出时都应该发送此事件。
 type StateChange struct { // implements Event
 	CompletedTurns int
 	NewState       State
 }
 
 // CellFlipped is an Event notifying the GUI about a change of state of a single cell.
-// CellFlipped 是一个事件，通知GUI单个单元格的状态更改。
 // This even should be sent every time a cell changes state.
-// 这甚至应该在每次单元格改变状态时发送。
 // Make sure to send this event for all cells that are alive when the image is loaded in.
-// 确保在加载图像时为所有活动的单元格发送此事件。
 type CellFlipped struct { // implements Event
 	CompletedTurns int
 	Cell           util.Cell
 }
 
 // TurnComplete is an Event notifying the GUI about turn completion.
-// TurnComplete是一个通知GUI回合完成的事件。
 // SDL will render a frame when this event is sent.
-// 当这个事件被发送时，SDL将呈现一个帧.
 // All CellFlipped events must be sent *before* TurnComplete.
-// 所有的cell翻转事件必须在TurnComplete之前发送。
 type TurnComplete struct { // implements Event
 	CompletedTurns int
 }
 
 // FinalTurnComplete is an Event notifying the testing framework about the new world state after execution finished.
-// FinalTurnComplete是一个事件，在执行完成后通知测试框架关于新的世界状态。
 // The data included with this Event is used directly by the tests.
-// 测试直接使用此事件包含的数据。
 // SDL closes the window when this Event is sent.
-// SDL在发送此事件时关闭窗口。
 type FinalTurnComplete struct {
 	CompletedTurns int
 	Alive          []util.Cell
 }
 
 // String methods allow the different types of Events and States to be printed.
-//字符串方法允许打印不同类型的事件和状态。
 
 func (state State) String() string {
 	switch state {

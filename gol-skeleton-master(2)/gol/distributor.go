@@ -7,7 +7,6 @@ import (
 	"os"
 	"strconv"
 	"time"
-
 	"uk.ac.bris.cs/gameoflife/stubs"
 	"uk.ac.bris.cs/gameoflife/util"
 )
@@ -29,16 +28,14 @@ type workerChannels struct {
 
 // distributor divides the work between workers and interacts with other goroutines.
 func distributor(p Params, c distributorChannels) {
-
 	wd := p.ImageWidth
 	hd := p.ImageHeight
 	ChannelClosed := false
 	c.ioCommand <- ioInput
 	filename1 := fmt.Sprintf("%dx%d", hd, wd)
 	c.ioFilename <- filename1
-
 	//  Create a 2D slice to store the world.
-	world := MakeNewWorld(hd, wd)
+	world := makeNewWorld(hd, wd)
 	for i := range world {
 		world[i] = make([]byte, wd)
 		for j := range world[i] {
@@ -52,16 +49,13 @@ func distributor(p Params, c distributorChannels) {
 		}
 	}
 	turn := 0
-
-	golWorker, err := rpc.Dial("tcp", "localhost:8080")
+	golWorker, err := rpc.Dial("tcp", "54.163.128.97:8030")
 	if err != nil {
 		panic(err)
 	}
 	defer golWorker.Close()
-
 	go timer(golWorker, c.events, &ChannelClosed)
 	go keypress(golWorker, p, c, &ChannelClosed)
-
 	var res stubs.GameOfLifeResponse
 	req := stubs.GameOfLifeRequest{
 		World: world,
@@ -72,16 +66,13 @@ func distributor(p Params, c distributorChannels) {
 			Threads:     p.Threads,
 		},
 	}
-
 	err = golWorker.Call(stubs.GameOfLife, req, &res)
 	if err != nil {
 		panic(err)
 	}
-
 	world = res.World
 	turn = res.Turns
-
-	OutPutFile(world, c, p, turn)
+	outPutFile(world, c, p, turn)
 	// Report the final state using FinalTurnCompleteEvent.
 	c.events <- FinalTurnComplete{CompletedTurns: p.Turns, Alive: res.AliveCells}
 	c.ioCommand <- ioCheckIdle
@@ -91,7 +82,7 @@ func distributor(p Params, c distributorChannels) {
 	close(c.events)
 }
 
-func MakeNewWorld(height, width int) [][]uint8 {
+func makeNewWorld(height, width int) [][]uint8 {
 	newWorld := make([][]uint8, height)
 	for i := range newWorld {
 		newWorld[i] = make([]uint8, width)
@@ -114,7 +105,7 @@ func timer(golWorker *rpc.Client, eventChan chan<- Event, ChannelClosed *bool) {
 	}
 }
 
-func OutPutFile(world [][]uint8, c distributorChannels, p Params, turn int) {
+func outPutFile(world [][]uint8, c distributorChannels, p Params, turn int) {
 	HD := strconv.Itoa(p.ImageHeight)
 	WD := strconv.Itoa(p.ImageWidth)
 	TR := strconv.Itoa(turn)
@@ -149,7 +140,7 @@ func keypress(golWorker *rpc.Client, p Params, c distributorChannels, ChannelClo
 		case 's':
 			fallthrough
 		case 'k':
-			OutPutFile(res.World, c, p, res.Turn)
+			outPutFile(res.World, c, p, res.Turn)
 			if key == 'k' {
 				c.events <- FinalTurnComplete{CompletedTurns: p.Turns, Alive: res.AliveCells}
 				c.ioCommand <- ioCheckIdle
@@ -159,7 +150,7 @@ func keypress(golWorker *rpc.Client, p Params, c distributorChannels, ChannelClo
 				os.Exit(0)
 			}
 		case 'q':
-			OutPutFile(res.World, c, p, res.Turn)
+			outPutFile(res.World, c, p, res.Turn)
 			c.events <- FinalTurnComplete{CompletedTurns: p.Turns, Alive: res.AliveCells}
 			c.ioCommand <- ioCheckIdle
 			<-c.ioIdle

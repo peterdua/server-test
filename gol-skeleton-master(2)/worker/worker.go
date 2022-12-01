@@ -56,18 +56,15 @@ func (w *Worker) GameOfLife(req stubs.GameOfLifeRequest, res *stubs.GameOfLifeRe
 			w.mutex.Unlock()
 		}
 	}
-
 	res.World = w.world
 	res.Turns = w.currentTurn
 	res.AliveCells = calculateAliveCells(req.Params, w.world)
-
 	return nil
 }
 
 func (w *Worker) GetAliveCells(req stubs.GetAliveCellsRequest, res *stubs.GetAliveCellsResponse) error {
 	w.mutex.Lock()
 	defer w.mutex.Unlock()
-
 	res.Turn = w.currentTurn
 	res.AliveCellsCount = len(calculateAliveCells(w.Param, w.world))
 	return nil
@@ -82,9 +79,6 @@ func (w *Worker) KeyPress(req stubs.KeyPressRequest, res *stubs.KeyPressResponse
 		res.Paused = w.paused
 	case 'q':
 		w.quitChan <- true
-		res.Turn = w.currentTurn
-		res.World = w.world
-		res.AliveCells = calculateAliveCells(w.Param, w.world)
 	case 's':
 		res.World = w.world
 	case 'k':
@@ -195,17 +189,14 @@ func CalculateNextState(world [][]uint8, p stubs.Params) ([][]uint8, []util.Cell
 }
 
 func main() {
-	port := flag.String("port", "8080", "port to listen on")
+	port := flag.String("port", "8030", "port to listen on")
 	flag.Parse()
-
 	listener, err := net.Listen("tcp", ":"+*port)
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}
 	defer listener.Close()
-
 	log.Printf("Listening on port %s", *port)
-
 	rpc.Register(&Worker{
 		world:       nil,
 		Param:       stubs.Params{},
